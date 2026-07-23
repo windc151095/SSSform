@@ -6,39 +6,56 @@ interface FormInputProps {
   onChange: (data: FormData) => void;
 }
 
+interface InputFieldProps {
+  label: string;
+  name: keyof FormData;
+  placeholder?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}
+
+const InputField = ({ label, name, placeholder, value, onChange }: InputFieldProps) => (
+  <div>
+    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide block mb-1">{label}</label>
+    <input
+      type="text"
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full border-b-2 border-[#F5F5F0] focus:border-[#7A8471] outline-none text-[12px] py-1 text-[#3C3633] bg-transparent transition-colors"
+    />
+  </div>
+);
+
+interface TextAreaFieldProps {
+  label: string;
+  name: keyof FormData;
+  rows?: number;
+  placeholder?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}
+
+const TextAreaField = ({ label, name, rows = 3, placeholder, value, onChange }: TextAreaFieldProps) => (
+  <div>
+    <label className="text-[10px] text-gray-500 italic mb-1 block">{label}</label>
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      rows={rows}
+      placeholder={placeholder}
+      className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] text-[#3C3633] outline-none transition-colors resize-none"
+    />
+  </div>
+);
+
 export function FormInput({ data, onChange }: FormInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     onChange({ ...data, [name]: value });
   };
-
-  const InputField = ({ label, name, placeholder }: { label: string; name: keyof FormData; placeholder?: string }) => (
-    <div>
-      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide block mb-1">{label}</label>
-      <input
-        type="text"
-        name={name}
-        value={data[name]}
-        onChange={handleChange}
-        placeholder={placeholder}
-        className="w-full border-b-2 border-[#F5F5F0] focus:border-[#7A8471] outline-none text-[12px] py-1 text-[#3C3633] bg-transparent transition-colors"
-      />
-    </div>
-  );
-
-  const TextAreaField = ({ label, name, rows = 3, placeholder }: { label: string; name: keyof FormData; rows?: number; placeholder?: string }) => (
-    <div>
-      <label className="text-[10px] text-gray-500 italic mb-1 block">{label}</label>
-      <textarea
-        name={name}
-        value={data[name]}
-        onChange={handleChange}
-        rows={rows}
-        placeholder={placeholder}
-        className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] text-[#3C3633] outline-none transition-colors resize-none"
-      />
-    </div>
-  );
 
   return (
     <div className="bg-white rounded-2xl shadow-xl shadow-black/5 flex flex-col border border-white/50 w-full mb-12">
@@ -55,8 +72,8 @@ export function FormInput({ data, onChange }: FormInputProps) {
       <div className="p-8 space-y-8">
         {/* Thông tin chung */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <InputField label="Ngày" name="date" placeholder="DD/MM/YYYY" />
-          <InputField label="Writer (Người viết)" name="writer" placeholder="Tên của bạn" />
+          <InputField label="Ngày" name="date" placeholder="DD/MM/YYYY" value={data.date} onChange={handleChange} />
+          <InputField label="Writer (Người viết)" name="writer" placeholder="Tên của bạn" value={data.writer} onChange={handleChange} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
@@ -91,7 +108,7 @@ export function FormInput({ data, onChange }: FormInputProps) {
             <p className="text-xs font-black text-[#7A8471] uppercase tracking-wider">Nhận dạng vô thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Soi tính xấu" name="soiTinhXau" rows={2} />
+            <TextAreaField label="1. Soi tính xấu" name="soiTinhXau" rows={2} value={data.soiTinhXau} onChange={handleChange} />
             <div>
               <label className="text-[10px] text-gray-500 italic mb-2 block">2. Xét độc hại</label>
               <div className="space-y-2">
@@ -100,7 +117,7 @@ export function FormInput({ data, onChange }: FormInputProps) {
                 <input type="text" name="xetDocHai_hanhDong" value={data.xetDocHai_hanhDong} onChange={handleChange} className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] outline-none text-[#3C3633] transition-colors" placeholder="c. Hành động" />
               </div>
             </div>
-            <TextAreaField label="3. Thấy hậu quả" name="thayHauQua" rows={2} />
+            <TextAreaField label="3. Thấy hậu quả" name="thayHauQua" rows={2} value={data.thayHauQua} onChange={handleChange} />
           </div>
         </div>
 
@@ -111,7 +128,7 @@ export function FormInput({ data, onChange }: FormInputProps) {
             <p className="text-xs font-black text-[#9A8C73] uppercase tracking-wider">Nhận dạng tâm thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Nhìn nhân gốc" name="nhinNhanGoc" rows={2} />
+            <TextAreaField label="1. Nhìn nhân gốc" name="nhinNhanGoc" rows={2} value={data.nhinNhanGoc} onChange={handleChange} />
             <div>
               <label className="text-[10px] text-gray-500 italic mb-2 block">2. Chọn tâm thức</label>
               <div className="space-y-2">
@@ -120,7 +137,7 @@ export function FormInput({ data, onChange }: FormInputProps) {
                 <input type="text" name="chonTamThuc_hanhDong" value={data.chonTamThuc_hanhDong} onChange={handleChange} className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#9A8C73] rounded p-2 text-[12px] outline-none text-[#3C3633] transition-colors" placeholder="c. Hành động" />
               </div>
             </div>
-            <TextAreaField label="3. Dưỡng đức tính" name="duongDucTinh" rows={2} />
+            <TextAreaField label="3. Dưỡng đức tính" name="duongDucTinh" rows={2} value={data.duongDucTinh} onChange={handleChange} />
           </div>
         </div>
 
@@ -131,10 +148,10 @@ export function FormInput({ data, onChange }: FormInputProps) {
             <p className="text-xs font-black text-[#5A5A40] uppercase tracking-wider">Thực luyện tâm thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Phá chấp" name="phaChap" rows={2} />
-            <TextAreaField label="2. Định tâm" name="dinhTam" rows={2} />
-            <TextAreaField label="3. Phát tuệ" name="phatTue" rows={2} />
-            <TextAreaField label="4. Thành người" name="thanhNguoi" rows={2} />
+            <TextAreaField label="1. Phá chấp" name="phaChap" rows={2} value={data.phaChap} onChange={handleChange} />
+            <TextAreaField label="2. Định tâm" name="dinhTam" rows={2} value={data.dinhTam} onChange={handleChange} />
+            <TextAreaField label="3. Phát tuệ" name="phatTue" rows={2} value={data.phatTue} onChange={handleChange} />
+            <TextAreaField label="4. Thành người" name="thanhNguoi" rows={2} value={data.thanhNguoi} onChange={handleChange} />
           </div>
         </div>
       </div>
