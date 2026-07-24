@@ -1,86 +1,130 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 
-const DATA_FILE = path.join(process.cwd(), 'data.json');
+const firebaseConfigStr = fs.readFileSync(path.join(process.cwd(), 'firebase-applet-config.json'), 'utf8');
+const firebaseConfig = JSON.parse(firebaseConfigStr);
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId || '(default)');
 
 // Default initial data
-let appData = {
-  config: {
-    fontSize: 11,
-    textColor: '#4b5563',
-    fontFamily: "'Google Sans', 'Be Vietnam Pro', sans-serif",
-    headingColor1: '#1d4ed8',
-    headingColor2: '#ef4444',
-    borderColor1: '#1d4ed8',
-    borderColor2: '#ef4444',
-    borderColor3: '#93c5fd',
-    backgroundColor: '#ffffff'
-  },
-  drafts: {}
-};
-
-try {
-  if (fs.existsSync(DATA_FILE)) {
-    const rawData = fs.readFileSync(DATA_FILE, 'utf8');
-    const parsedData = JSON.parse(rawData);
-    appData = { ...appData, ...parsedData };
-  }
-} catch (e) {
-  console.error('Error loading data file:', e);
-}
-
-const saveData = () => {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(appData, null, 2));
-  } catch (e) {
-    console.error('Error saving data file:', e);
+let defaultConfig = {
+  fontSize: 11,
+  textColor: '#4b5563',
+  fontFamily: "'Google Sans', 'Be Vietnam Pro', sans-serif",
+  headingColor1: '#1d4ed8',
+  headingColor2: '#ef4444',
+  borderColor1: '#1d4ed8',
+  borderColor2: '#ef4444',
+  borderColor3: '#93c5fd',
+  backgroundColor: '#ffffff',
+  fieldsConfig: {
+    thucCanh: {
+      type: "select",
+      options: [
+        "Thực cảnh 01. Được nuông chiều từ nhỏ",
+        "Thực cảnh 02. Không biết ngày mai ra sao",
+        "Thực cảnh 03. Mù quáng giữa đám đông",
+        "Thực cảnh 04. Tiêu xài vượt quá khả năng",
+        "Thực cảnh 05. Không ai dạy mình nên người",
+        "Thực cảnh 06. Lớn lên trong sự thua kém",
+        "Thực cảnh 07. Không mục đích, không mục tiêu",
+        "Thực cảnh 08. Liên tục bị từ chối",
+        "Thực cảnh 09. Cố gắng không được công nhận",
+        "Thực cảnh 10. Không có hình mẫu lãnh đạo"
+      ]
+    }
   }
 };
 
 // API Routes
-app.get('/api/config', (req, res) => {
-  res.json(appData.config);
+app.get('/api/config', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  try {
+    const docRef = doc(db, 'config', 'global');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      res.json({ ...defaultConfig, ...docSnap.data() });
+    } else {
+      res.json(defaultConfig);
+    }
+  } catch (e) {
+    console.error('Error fetching config:', e);
+    res.json(defaultConfig);
+  }
 });
 
-app.post('/api/config', (req, res) => {
-  appData.config = { ...appData.config, ...req.body };
-  saveData();
-  res.json({ success: true, config: appData.config });
+app.post('/api/config', async (req, res) => {
+  try {
+    const docRef = doc(db, 'config', 'global');
+    await setDoc(docRef, req.body, { merge: true });
+    res.json({ success: true, config: req.body });
+  } catch (e) {
+    console.error('Error saving config:', e);
+    res.status(500).json({ error: 'Failed to save config' });
+  }
 });
 
-app.get('/api/drafts', (req, res) => {
-  res.json(Object.values(appData.drafts));
+app.get('/api/drafts', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  try {
+    const querySnapshot = await getDocs(collection(db, 'drafts'));
+    const drafts: any[] = [];
+    querySnapshot.forEach((doc) => {
+      drafts.push(doc.data());
+    });
+    res.json(drafts);
+  } catch (e) {
+    console.error('Error fetching drafts:', e);
+    res.json([]);
+  }
 });
 
-app.post('/api/drafts', (req, res) => {
+app.post('/api/drafts', async (req, res) => {
   const { pin, data, timestamp } = req.body;
   if (!pin) {
     return res.status(400).json({ error: 'PIN is required' });
   }
-  appData.drafts[pin] = { pin, data, timestamp };
-  saveData();
-  res.json({ success: true });
-});
-
-app.get('/api/drafts/:pin', (req, res) => {
-  const draft = appData.drafts[req.params.pin];
-  if (draft) {
-    res.json(draft);
-  } else {
-    res.status(404).json({ error: 'Draft not found' });
+  try {
+    const docRef = doc(db, 'drafts', pin);
+    await setDoc(docRef, { pin, data, timestamp });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Error saving draft:', e);
+    res.status(500).json({ error: 'Failed to save draft' });
   }
 });
 
-app.delete('/api/drafts/:pin', (req, res) => {
-  if (appData.drafts[req.params.pin]) {
-    delete appData.drafts[req.params.pin];
-    saveData();
+app.get('/api/drafts/:pin', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  try {
+    const docRef = doc(db, 'drafts', req.params.pin);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      res.json(docSnap.data());
+    } else {
+      res.status(404).json({ error: 'Draft not found' });
+    }
+  } catch (e) {
+    console.error('Error fetching draft:', e);
+    res.status(500).json({ error: 'Failed to fetch draft' });
   }
-  res.json({ success: true });
+});
+
+app.delete('/api/drafts/:pin', async (req, res) => {
+  try {
+    const docRef = doc(db, 'drafts', req.params.pin);
+    await deleteDoc(docRef);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Error deleting draft:', e);
+    res.status(500).json({ error: 'Failed to delete draft' });
+  }
 });
 
 async function startServer() {
