@@ -29,18 +29,11 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
         <div className="flex justify-between items-start pt-8 px-8 border-b-[1px] pb-6" style={{ borderColor: headingColor1 }}>
           {/* Logo Area */}
           <div className="w-[300px] text-center mt-2 flex flex-col items-center">
-            <h1
-              className="font-bold text-[18px] tracking-[0.4em] uppercase mb-2"
-              style={{ color: headingColor1 }}
-            >
-              Sống Sáng Suốt
-            </h1>
-            <div className="text-[6px] text-center uppercase tracking-wider border rounded-full px-3 py-1 inline-block mb-4" style={{ borderColor: borderColor3 }}>
-              <span style={{ color: headingColor2 }}>Suốt ngày sống</span> <span style={{ color: borderColor3 }}>|</span>{' '}
-              <span style={{ color: headingColor2 }}>Suốt ngày sáng</span> <span style={{ color: borderColor3 }}>|</span>{' '}
-              <span style={{ color: headingColor1 }}>Suốt đời sống</span> <span style={{ color: borderColor3 }}>|</span>{' '}
-              <span style={{ color: headingColor1 }}>Suốt đời sáng</span>
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Sống Sáng Suốt" 
+              className="w-full object-contain mb-4" 
+            />
             
             <p className="font-bold text-[14px] mt-2" style={{ color: headingColor1 }}>
               Writer: {data.writer || '....................'}
@@ -83,7 +76,7 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
         <div className="grid grid-cols-2 gap-4 px-8 mt-2 relative">
           {/* Left Column */}
           <div>
-            <h3 className="font-bold uppercase mb-2 tracking-wide text-[16px]" style={{ color: headingColor1 }}>
+            <h3 className="font-bold uppercase mb-2 tracking-wide text-[16px]" style={{ color: headingColor1, fontFamily: "'Google Sans', sans-serif" }}>
               NHẬN DẠNG VÔ THỨC
             </h3>
             <div
@@ -113,7 +106,7 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
 
           {/* Right Column */}
           <div>
-            <h3 className="font-bold uppercase mb-2 tracking-wide text-[16px]" style={{ color: headingColor2 }}>
+            <h3 className="font-bold uppercase mb-2 tracking-wide text-[16px]" style={{ color: headingColor2, fontFamily: "'Google Sans', sans-serif" }}>
               NHẬN DẠNG TÂM THỨC
             </h3>
             <div
@@ -144,7 +137,7 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
 
         {/* Bottom Table */}
         <div className="mt-4 px-8">
-          <h3 className="font-bold uppercase mb-2 tracking-wide text-[16px]" style={{ color: headingColor2 }}>
+          <h3 className="font-bold uppercase mb-2 tracking-wide text-[16px]" style={{ color: headingColor2, fontFamily: "'Google Sans', sans-serif" }}>
             THỰC LUYỆN TÂM THỨC
           </h3>
           <div
