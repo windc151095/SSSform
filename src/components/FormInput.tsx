@@ -179,7 +179,7 @@ export function FormInput({ data, config, onChange, onPreview }: FormInputProps)
           </svg>
         </div>
         <h3 className="font-serif italic text-2xl mb-1 relative z-10">Nhập liệu nội dung</h3>
-        <p className="text-[10px] opacity-80 uppercase tracking-widest relative z-10">Tâm thức đồ</p>
+        <p className="text-[10px] opacity-80 uppercase tracking-widest relative z-10">Thực luyện tâm thức - 20 bộ đời sống tâm thức</p>
       </div>
 
       {/* Auto Save/Load Section */}
