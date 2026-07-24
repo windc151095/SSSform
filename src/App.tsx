@@ -13,7 +13,24 @@ type Tab = 'fill' | 'preview' | 'admin';
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('fill');
   const [formData, setFormData] = useState<FormData>(defaultFormData);
-  const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(defaultTemplateConfig);
+  
+  const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(() => {
+    const saved = localStorage.getItem('templateConfig');
+    if (saved) {
+      try {
+        return { ...defaultTemplateConfig, ...JSON.parse(saved) };
+      } catch (e) {
+        console.error('Failed to parse saved config', e);
+      }
+    }
+    return defaultTemplateConfig;
+  });
+
+  const handleSaveConfig = () => {
+    localStorage.setItem('templateConfig', JSON.stringify(templateConfig));
+    alert('Đã lưu tùy chọn màu sắc và cài đặt thành công!');
+  };
+
   const [isExporting, setIsExporting] = useState(false);
 
   const previewRef = useRef<HTMLDivElement>(null);
@@ -44,8 +61,8 @@ export default function App() {
       {/* Navigation */}
       <header className="h-16 bg-white border-b border-[#E2E2D8] flex items-center justify-between px-4 sm:px-8 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#7A8471] rounded-full flex items-center justify-center text-white font-sans italic shadow-sm">S</div>
-          <h1 className="font-sans text-xl font-semibold tracking-tight uppercase text-[#5A5A40] hidden sm:block">Sống Sáng Suốt</h1>
+          <div className="w-8 h-8 bg-[#7A8471] rounded-full flex items-center justify-center text-white font-serif italic shadow-sm">S</div>
+          <h1 className="font-serif text-xl font-semibold tracking-tight uppercase text-[#5A5A40] hidden sm:block">Sống Sáng Suốt</h1>
         </div>
         <div className="flex items-center gap-6">
           <div className="flex gap-2 p-1 bg-[#F5F5F0] rounded-lg">
@@ -91,7 +108,7 @@ export default function App() {
 
           {activeTab === 'admin' && (
             <div className="w-full max-w-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <AdminPanel config={templateConfig} onChange={setTemplateConfig} />
+              <AdminPanel config={templateConfig} onChange={setTemplateConfig} onSave={handleSaveConfig} />
             </div>
           )}
 

@@ -7,6 +7,7 @@ export interface TemplateConfig {
   borderColor1: string;
   borderColor2: string;
   borderColor3: string;
+  backgroundColor: string;
 }
 
 export interface FormData {
@@ -15,15 +16,11 @@ export interface FormData {
   thucCanh: string;
   tinhHuong: string;
   soiTinhXau: string;
-  xetDocHai_suyNghi: string;
-  xetDocHai_loiNoi: string;
-  xetDocHai_hanhDong: string;
+  xetDocHai: string;
   thayHauQua: string;
-  nhinNhanGoc: string;
-  chonTamThuc_suyNghi: string;
-  chonTamThuc_loiNoi: string;
-  chonTamThuc_hanhDong: string;
-  duongDucTinh: string;
+  nhinGoc: string;
+  chonTam: string;
+  duongTinh: string;
   phaChap: string;
   dinhTam: string;
   phatTue: string;
@@ -38,7 +35,8 @@ export const defaultTemplateConfig: TemplateConfig = {
   headingColor2: '#ef4444', // Red
   borderColor1: '#1e40af',
   borderColor2: '#ef4444',
-  borderColor3: '#93c5fd'
+  borderColor3: '#93c5fd',
+  backgroundColor: '#ffffff'
 };
 
 // Will adjust colors later to perfectly match the image.
@@ -55,15 +53,11 @@ export const defaultFormData: FormData = {
   thucCanh: '',
   tinhHuong: '',
   soiTinhXau: '',
-  xetDocHai_suyNghi: '',
-  xetDocHai_loiNoi: '',
-  xetDocHai_hanhDong: '',
+  xetDocHai: '',
   thayHauQua: '',
-  nhinNhanGoc: '',
-  chonTamThuc_suyNghi: '',
-  chonTamThuc_loiNoi: '',
-  chonTamThuc_hanhDong: '',
-  duongDucTinh: '',
+  nhinGoc: '',
+  chonTam: '',
+  duongTinh: '',
   phaChap: '',
   dinhTam: '',
   phatTue: '',

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormData } from '../types';
+import { Save, Search } from 'lucide-react';
 
 interface FormInputProps {
   data: FormData;
@@ -52,6 +53,91 @@ const TextAreaField = ({ label, name, rows = 3, placeholder, value, onChange }: 
 );
 
 export function FormInput({ data, onChange }: FormInputProps) {
+  const [pin, setPin] = useState('');
+  const [saveStatus, setSaveStatus] = useState('');
+
+  const handleSave = () => {
+    if (pin.length !== 4) {
+      alert('Vui lòng nhập mã PIN 4 số để lưu nháp');
+      return;
+    }
+    const draft = {
+      pin,
+      data,
+      timestamp: Date.now()
+    };
+    
+    const configStr = localStorage.getItem('templateConfig');
+    if (configStr) {
+      try {
+        const config = JSON.parse(configStr);
+        if (config.databaseUrl) {
+          fetch(config.databaseUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(draft)
+          }).catch(() => {});
+        }
+      } catch (e) {}
+    }
+
+    localStorage.setItem(`draft_${pin}`, JSON.stringify(draft));
+    setSaveStatus('Đã lưu nháp!');
+    setTimeout(() => setSaveStatus(''), 2000);
+  };
+
+  // Auto-save effect
+  useEffect(() => {
+    if (pin.length === 4) {
+      const draft = {
+        pin,
+        data,
+        timestamp: Date.now()
+      };
+      
+      const configStr = localStorage.getItem('templateConfig');
+      if (configStr) {
+        try {
+          const config = JSON.parse(configStr);
+          if (config.databaseUrl) {
+            fetch(config.databaseUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(draft)
+            }).catch(() => {});
+          }
+        } catch (e) {}
+      }
+
+      localStorage.setItem(`draft_${pin}`, JSON.stringify(draft));
+      setSaveStatus('Đã tự động lưu nháp!');
+      const timeout = setTimeout(() => setSaveStatus(''), 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [data, pin]);
+
+  const handleLoad = () => {
+    if (pin.length !== 4) {
+      alert('Vui lòng nhập mã PIN 4 số');
+      return;
+    }
+    const saved = localStorage.getItem(`draft_${pin}`);
+    if (saved) {
+      const draft = JSON.parse(saved);
+      const isExpired = Date.now() - draft.timestamp > 24 * 60 * 60 * 1000;
+      
+      if (isExpired) {
+        alert('Bản nháp đã hết hạn (quá 24h).');
+        localStorage.removeItem(`draft_${pin}`);
+      } else {
+        onChange(draft.data);
+        alert('Đã khôi phục bài viết!');
+      }
+    } else {
+      alert('Không tìm thấy bài viết nào với mã PIN này.');
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     onChange({ ...data, [name]: value });
@@ -65,8 +151,50 @@ export function FormInput({ data, onChange }: FormInputProps) {
             <path d="M12 2L2 22h20L12 2zm0 3.8l7.5 15.2H4.5L12 5.8z"/>
           </svg>
         </div>
-        <h3 className="font-sans italic text-2xl mb-1 relative z-10">Nhập liệu nội dung</h3>
+        <h3 className="font-serif italic text-2xl mb-1 relative z-10">Nhập liệu nội dung</h3>
         <p className="text-[10px] opacity-80 uppercase tracking-widest relative z-10">Tâm thức đồ</p>
+      </div>
+
+      {/* Auto Save/Load Section */}
+      <div className="px-8 pt-6 pb-2 border-b border-[#F5F5F0]">
+        <div className="flex flex-col sm:flex-row items-center gap-4 bg-[#F9F9F7] p-3 rounded-lg border border-[#E2E2D8]">
+          <div className="flex items-center gap-2">
+            <Save className="w-4 h-4 text-[#7A8471]" />
+            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Lưu / Tìm lại bài viết</span>
+          </div>
+          <div className="flex-1 flex items-center justify-end gap-2">
+            <input
+              type="text"
+              maxLength={4}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+              placeholder="Mã PIN 4 số"
+              className="w-24 text-center p-1.5 text-xs font-mono border border-[#E2E2D8] rounded focus:border-[#7A8471] outline-none"
+            />
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-1 px-3 py-1.5 bg-[#5A5A40] text-white text-xs font-bold uppercase rounded hover:bg-[#4A4A35] transition-colors"
+            >
+              <Save className="w-3 h-3" />
+              Lưu nháp
+            </button>
+            <button
+              onClick={handleLoad}
+              className="flex items-center gap-1 px-3 py-1.5 bg-[#5A5A40] text-white text-xs font-bold uppercase rounded hover:bg-[#4A4A35] transition-colors"
+            >
+              <Search className="w-3 h-3" />
+              Tìm
+            </button>
+          </div>
+          {saveStatus && (
+            <span className="text-[10px] text-green-600 font-medium absolute top-4 right-4 animate-in fade-in">
+              {saveStatus}
+            </span>
+          )}
+        </div>
+        <p className="text-[10px] text-gray-400 italic mt-2">
+          * Nhập mã PIN 4 số để tự động lưu nháp trong 24h hoặc khôi phục bài viết cũ.
+        </p>
       </div>
 
       <div className="p-8 space-y-8">
@@ -105,19 +233,12 @@ export function FormInput({ data, onChange }: FormInputProps) {
         <div className="pt-6 border-t border-[#F5F5F0]">
           <div className="flex items-center gap-3 mb-4">
             <span className="w-6 h-6 rounded-full bg-[#7A8471] text-white flex items-center justify-center text-[10px] font-bold">01</span>
-            <p className="text-xs font-black text-[#7A8471] uppercase tracking-wider">Nhận dạng vô thức</p>
+            <p className="text-xs font-black text-[#7A8471] uppercase tracking-wider" style={{ fontFamily: "'Google Sans', sans-serif" }}>Nhận dạng vô thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Soi tính xấu" name="soiTinhXau" rows={2} value={data.soiTinhXau} onChange={handleChange} />
-            <div>
-              <label className="text-[10px] text-gray-500 italic mb-2 block">2. Xét độc hại</label>
-              <div className="space-y-2">
-                <input type="text" name="xetDocHai_suyNghi" value={data.xetDocHai_suyNghi} onChange={handleChange} className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] outline-none text-[#3C3633] transition-colors" placeholder="a. Suy nghĩ" />
-                <input type="text" name="xetDocHai_loiNoi" value={data.xetDocHai_loiNoi} onChange={handleChange} className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] outline-none text-[#3C3633] transition-colors" placeholder="b. Lời nói" />
-                <input type="text" name="xetDocHai_hanhDong" value={data.xetDocHai_hanhDong} onChange={handleChange} className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] outline-none text-[#3C3633] transition-colors" placeholder="c. Hành động" />
-              </div>
-            </div>
-            <TextAreaField label="3. Thấy hậu quả" name="thayHauQua" rows={2} value={data.thayHauQua} onChange={handleChange} />
+            <TextAreaField label="1. Soi tính xấu (Mình đang có tính xấu gì)" name="soiTinhXau" rows={2} value={data.soiTinhXau} onChange={handleChange} />
+            <TextAreaField label="2. Xét độc hại (Độc tính nào đang vận hành)" name="xetDocHai" rows={3} value={data.xetDocHai} onChange={handleChange} />
+            <TextAreaField label="3. Thấy hậu quả (Hậu quả nào sẽ xảy ra)" name="thayHauQua" rows={2} value={data.thayHauQua} onChange={handleChange} />
           </div>
         </div>
 
@@ -125,19 +246,12 @@ export function FormInput({ data, onChange }: FormInputProps) {
         <div className="pt-6 border-t border-[#F5F5F0]">
           <div className="flex items-center gap-3 mb-4">
             <span className="w-6 h-6 rounded-full bg-[#9A8C73] text-white flex items-center justify-center text-[10px] font-bold">02</span>
-            <p className="text-xs font-black text-[#9A8C73] uppercase tracking-wider">Nhận dạng tâm thức</p>
+            <p className="text-xs font-black text-[#9A8C73] uppercase tracking-wider" style={{ fontFamily: "'Google Sans', sans-serif" }}>Nhận dạng tâm thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Nhìn nhân gốc" name="nhinNhanGoc" rows={2} value={data.nhinNhanGoc} onChange={handleChange} />
-            <div>
-              <label className="text-[10px] text-gray-500 italic mb-2 block">2. Chọn tâm thức</label>
-              <div className="space-y-2">
-                <input type="text" name="chonTamThuc_suyNghi" value={data.chonTamThuc_suyNghi} onChange={handleChange} className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#9A8C73] rounded p-2 text-[12px] outline-none text-[#3C3633] transition-colors" placeholder="a. Suy nghĩ" />
-                <input type="text" name="chonTamThuc_loiNoi" value={data.chonTamThuc_loiNoi} onChange={handleChange} className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#9A8C73] rounded p-2 text-[12px] outline-none text-[#3C3633] transition-colors" placeholder="b. Lời nói" />
-                <input type="text" name="chonTamThuc_hanhDong" value={data.chonTamThuc_hanhDong} onChange={handleChange} className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#9A8C73] rounded p-2 text-[12px] outline-none text-[#3C3633] transition-colors" placeholder="c. Hành động" />
-              </div>
-            </div>
-            <TextAreaField label="3. Dưỡng đức tính" name="duongDucTinh" rows={2} value={data.duongDucTinh} onChange={handleChange} />
+            <TextAreaField label="1. Nhìn gốc (Nhân gốc lành cấy sâu)" name="nhinGoc" rows={2} value={data.nhinGoc} onChange={handleChange} />
+            <TextAreaField label="2. Chọn tâm (Xây giá trị phát triển)" name="chonTam" rows={3} value={data.chonTam} onChange={handleChange} />
+            <TextAreaField label="3. Dưỡng tính (Đức tính cần rèn luyện)" name="duongTinh" rows={2} value={data.duongTinh} onChange={handleChange} />
           </div>
         </div>
 
@@ -145,13 +259,13 @@ export function FormInput({ data, onChange }: FormInputProps) {
         <div className="pt-6 border-t border-[#F5F5F0]">
           <div className="flex items-center gap-3 mb-4">
             <span className="w-6 h-6 rounded-full bg-[#5A5A40] text-white flex items-center justify-center text-[10px] font-bold">03</span>
-            <p className="text-xs font-black text-[#5A5A40] uppercase tracking-wider">Thực luyện tâm thức</p>
+            <p className="text-xs font-black text-[#5A5A40] uppercase tracking-wider" style={{ fontFamily: "'Google Sans', sans-serif" }}>Thực luyện tâm thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Phá chấp" name="phaChap" rows={2} value={data.phaChap} onChange={handleChange} />
-            <TextAreaField label="2. Định tâm" name="dinhTam" rows={2} value={data.dinhTam} onChange={handleChange} />
-            <TextAreaField label="3. Phát tuệ" name="phatTue" rows={2} value={data.phatTue} onChange={handleChange} />
-            <TextAreaField label="4. Thành người" name="thanhNguoi" rows={2} value={data.thanhNguoi} onChange={handleChange} />
+            <TextAreaField label="1. Phá chấp mở đường" name="phaChap" rows={2} value={data.phaChap} onChange={handleChange} />
+            <TextAreaField label="2. Định tâm giải quyết" name="dinhTam" rows={2} value={data.dinhTam} onChange={handleChange} />
+            <TextAreaField label="3. Phát tuệ hành xử" name="phatTue" rows={2} value={data.phatTue} onChange={handleChange} />
+            <TextAreaField label="4. Thành người đáng tin" name="thanhNguoi" rows={2} value={data.thanhNguoi} onChange={handleChange} />
           </div>
         </div>
       </div>
