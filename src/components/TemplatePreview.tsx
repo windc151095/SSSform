@@ -38,21 +38,21 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
               </div>
             )}
             
-            <p className="font-bold text-[14px] mt-2" style={{ color: headingColor1 }}>
-              Writer: {data.writer || '....................'}
+            <p className="font-bold text-[16px] mt-2" style={{ color: headingColor2 }}>
+              THỰC LUYỆN TÂM THỨC
             </p>
-            <p className="italic text-[14px]" style={{ color: headingColor1 }}>
-              {data.date || '..../..../202..'}
+            <p className="font-bold text-[14px] uppercase" style={{ color: headingColor1 }}>
+              - 20 BỘ ĐỜI SỐNG TÂM THỨC -
             </p>
           </div>
 
           {/* Center Titles */}
           <div className="text-center flex-1 mt-2">
-            <h2 className="font-bold text-[18px] uppercase mb-1" style={{ color: headingColor2 }}>
-              THỰC LUYỆN TÂM THỨC
+            <h2 className="font-bold text-[18px] uppercase mb-1" style={{ color: headingColor1 }}>
+              Writer: {data.writer || '....................'}
             </h2>
-            <h3 className="font-bold text-[16px] uppercase mb-4" style={{ color: headingColor1 }}>
-              20 BỘ ĐỜI SỐNG TÂM THỨC
+            <h3 className="font-bold text-[16px] italic mb-4" style={{ color: headingColor1 }}>
+              {data.date || '..../..../202..'}
             </h3>
             <div className="flex justify-center items-center gap-1 text-[14px] font-bold italic mt-8">
               <span className="text-[14px]" style={{ color: headingColor2 }}>Tình huống:</span>
