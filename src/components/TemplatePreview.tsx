@@ -55,7 +55,6 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
               20 BỘ ĐỜI SỐNG TÂM THỨC
             </h3>
             <div className="flex justify-center items-center gap-1 text-[14px] font-bold italic mt-8">
-              <span className="text-[14px]" style={{ color: headingColor2 }}>Tình huống:</span>
               <span className="text-[14px]" style={{ color: headingColor1 }}>{data.tinhHuong || 'Nuông chiều mình trong mua sắm'}</span>
             </div>
           </div>
@@ -69,7 +68,6 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
               <span style={{ color: headingColor2 }}>Giai đoạn 01. </span><span style={{ color: headingColor1 }}>Hình thành nền móng</span>
             </div>
             <div className="flex justify-center items-center gap-1 text-[14px] font-bold">
-              <span style={{ color: headingColor2 }}>Thực cảnh 01.</span>
               <span style={{ color: headingColor1 }}>{data.thucCanh || 'Được nuông chiều từ nhỏ'}</span>
             </div>
           </div>

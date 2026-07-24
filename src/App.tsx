@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { toPng } from 'html-to-image';
 import download from 'downloadjs';
 import { Settings, PenTool, Image as ImageIcon, Download, ZoomIn, ZoomOut } from 'lucide-react';
@@ -14,7 +14,36 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('fill');
   const [formData, setFormData] = useState<FormData>(defaultFormData);
   const [previewZoom, setPreviewZoom] = useState(window.innerWidth < 1024 ? Math.max((window.innerWidth - 64) / 1000, 0.3) : 1);
-  
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
+  const [draftToRestore, setDraftToRestore] = useState<FormData | null>(null);
+
+  useEffect(() => {
+    const autoDraft = localStorage.getItem('auto_draft');
+    if (autoDraft) {
+      try {
+        const parsed = JSON.parse(autoDraft);
+        // Only restore if it's less than 24h old and not deeply equal to default
+        if (parsed.timestamp && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000 && parsed.data) {
+          if (JSON.stringify(parsed.data) !== JSON.stringify(defaultFormData)) {
+             setDraftToRestore(parsed.data);
+             setShowRestorePrompt(true);
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi khi đọc auto_draft', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (formData !== defaultFormData) {
+      localStorage.setItem('auto_draft', JSON.stringify({
+        data: formData,
+        timestamp: Date.now()
+      }));
+    }
+  }, [formData]);
+
   const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(() => {
     const saved = localStorage.getItem('templateConfig');
     if (saved) {
@@ -59,6 +88,35 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F5F5F0] text-[#3C3633] font-sans flex flex-col">
+      {showRestorePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl">
+            <h3 className="font-serif italic text-xl text-[#5A5A40] mb-2">Khôi phục bài viết?</h3>
+            <p className="text-sm text-gray-600 mb-6">Bạn có một bài viết đang soạn dở. Bạn có muốn khôi phục lại không?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowRestorePrompt(false);
+                  setDraftToRestore(null);
+                  localStorage.removeItem('auto_draft');
+                }}
+                className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              >
+                Bỏ qua
+              </button>
+              <button
+                onClick={() => {
+                  if (draftToRestore) setFormData(draftToRestore);
+                  setShowRestorePrompt(false);
+                }}
+                className="px-4 py-2 bg-[#7A8471] text-white text-xs font-bold uppercase tracking-wider rounded shadow-sm hover:bg-[#606958] transition-colors"
+              >
+                Khôi phục
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Navigation */}
       <header className="h-16 bg-white border-b border-[#E2E2D8] flex items-center justify-between px-4 sm:px-8 shrink-0">
         <div className="flex items-center gap-3">
@@ -103,7 +161,7 @@ export default function App() {
         <section className="flex-1 flex justify-center overflow-y-auto p-4 sm:p-8 custom-scrollbar">
           {activeTab === 'fill' && (
             <div className="w-full max-w-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <FormInput data={formData} onChange={setFormData} onPreview={() => setActiveTab('preview')} />
+              <FormInput data={formData} config={templateConfig} onChange={setFormData} onPreview={() => setActiveTab('preview')} />
             </div>
           )}
 

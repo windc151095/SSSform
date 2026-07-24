@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FormData } from '../types';
+import { FormData, TemplateConfig } from '../types';
 import { Save, Search } from 'lucide-react';
 
 interface FormInputProps {
   data: FormData;
+  config: TemplateConfig;
   onChange: (data: FormData) => void;
   onPreview?: () => void;
 }
@@ -13,22 +14,24 @@ interface InputFieldProps {
   name: keyof FormData;
   placeholder?: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 
-const InputField = ({ label, name, placeholder, value, onChange }: InputFieldProps) => (
-  <div>
-    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide block mb-1">{label}</label>
-    <input
-      type="text"
-      name={name}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className="w-full border-b-2 border-[#F5F5F0] focus:border-[#7A8471] outline-none text-[12px] py-1 text-[#3C3633] bg-transparent transition-colors"
-    />
-  </div>
-);
+const InputField = ({ label, name, placeholder, value, onChange }: InputFieldProps) => {
+  return (
+    <div>
+      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide block mb-1">{label}</label>
+      <input
+        type="text"
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full border-b-2 border-[#F5F5F0] focus:border-[#7A8471] outline-none text-[12px] py-1 text-[#3C3633] bg-transparent transition-colors"
+      />
+    </div>
+  );
+};
 
 interface TextAreaFieldProps {
   label: string;
@@ -36,24 +39,47 @@ interface TextAreaFieldProps {
   rows?: number;
   placeholder?: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  config?: TemplateConfig;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 
-const TextAreaField = ({ label, name, rows = 3, placeholder, value, onChange }: TextAreaFieldProps) => (
-  <div>
-    <label className="text-[10px] text-gray-500 italic mb-1 block">{label}</label>
-    <textarea
-      name={name}
-      value={value}
-      onChange={onChange}
-      rows={rows}
-      placeholder={placeholder}
-      className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] text-[#3C3633] outline-none transition-colors resize-none"
-    />
-  </div>
-);
+const TextAreaField = ({ label, name, rows = 3, placeholder, value, config, onChange }: TextAreaFieldProps) => {
+  const [isFocused, setIsFocused] = useState(false);
+  
+  const fieldConfig = config?.fieldsConfig?.[name];
 
-export function FormInput({ data, onChange, onPreview }: FormInputProps) {
+  return (
+    <div>
+      <label className="text-[10px] text-gray-500 italic mb-1 block">{label}</label>
+      {fieldConfig?.type === 'select' ? (
+        <select
+          name={name}
+          value={value}
+          onChange={onChange}
+          className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] text-[#3C3633] outline-none transition-colors"
+        >
+          <option value="">-- Chọn --</option>
+          {fieldConfig.options?.map((opt, i) => (
+            <option key={i} value={opt}>{opt}</option>
+          ))}
+        </select>
+      ) : (
+        <textarea
+          name={name}
+          value={value}
+          onChange={onChange}
+          rows={isFocused ? Math.max(rows, 6) : rows}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={placeholder}
+          className="w-full bg-[#F9F9F7] border border-transparent focus:border-[#7A8471] rounded p-2 text-[12px] text-[#3C3633] outline-none transition-colors resize-none"
+        />
+      )}
+    </div>
+  );
+};
+
+export function FormInput({ data, config, onChange, onPreview }: FormInputProps) {
   const [pin, setPin] = useState('');
   const [saveStatus, setSaveStatus] = useState('');
 
@@ -206,27 +232,9 @@ export function FormInput({ data, onChange, onPreview }: FormInputProps) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide block mb-2">Tình huống</label>
-            <textarea
-              name="tinhHuong"
-              value={data.tinhHuong}
-              onChange={handleChange}
-              rows={2}
-              className="w-full border border-[#F5F5F0] rounded p-3 text-[12px] text-[#3C3633] focus:border-[#7A8471] outline-none transition-colors bg-[#FAFAFA] resize-none"
-              placeholder="Tình huống..."
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide block mb-2">Thực cảnh</label>
-            <textarea
-              name="thucCanh"
-              value={data.thucCanh}
-              onChange={handleChange}
-              rows={2}
-              className="w-full border border-[#F5F5F0] rounded p-3 text-[12px] text-[#3C3633] focus:border-[#7A8471] outline-none transition-colors bg-[#FAFAFA] resize-none"
-              placeholder="Sự việc diễn ra..."
-            />
+          <div className="space-y-4">
+            <TextAreaField config={config} label="Tình huống" name="tinhHuong" rows={2} placeholder="Tình huống..." value={data.tinhHuong} onChange={handleChange} />
+            <TextAreaField config={config} label="Thực cảnh" name="thucCanh" rows={2} placeholder="Sự việc diễn ra..." value={data.thucCanh} onChange={handleChange} />
           </div>
         </div>
 
@@ -237,9 +245,9 @@ export function FormInput({ data, onChange, onPreview }: FormInputProps) {
             <p className="text-xs font-black text-[#7A8471] uppercase tracking-wider" style={{ fontFamily: "'Google Sans', sans-serif" }}>Nhận dạng vô thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Soi tính xấu (Mình đang có tính xấu gì)" name="soiTinhXau" rows={2} value={data.soiTinhXau} onChange={handleChange} />
-            <TextAreaField label="2. Xét độc hại (Độc tính nào đang vận hành)" name="xetDocHai" rows={3} value={data.xetDocHai} onChange={handleChange} />
-            <TextAreaField label="3. Thấy hậu quả (Hậu quả nào sẽ xảy ra)" name="thayHauQua" rows={2} value={data.thayHauQua} onChange={handleChange} />
+            <TextAreaField config={config} label="1. Soi tính xấu (Mình đang có tính xấu gì)" name="soiTinhXau" rows={2} value={data.soiTinhXau} onChange={handleChange} />
+            <TextAreaField config={config} label="2. Xét độc hại (Độc tính nào đang vận hành)" name="xetDocHai" rows={3} value={data.xetDocHai} onChange={handleChange} />
+            <TextAreaField config={config} label="3. Thấy hậu quả (Hậu quả nào sẽ xảy ra)" name="thayHauQua" rows={2} value={data.thayHauQua} onChange={handleChange} />
           </div>
         </div>
 
@@ -250,9 +258,9 @@ export function FormInput({ data, onChange, onPreview }: FormInputProps) {
             <p className="text-xs font-black text-[#9A8C73] uppercase tracking-wider" style={{ fontFamily: "'Google Sans', sans-serif" }}>Nhận dạng tâm thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Nhìn gốc (Nhân gốc lành cấy sâu)" name="nhinGoc" rows={2} value={data.nhinGoc} onChange={handleChange} />
-            <TextAreaField label="2. Chọn tâm (Xây giá trị phát triển)" name="chonTam" rows={3} value={data.chonTam} onChange={handleChange} />
-            <TextAreaField label="3. Dưỡng tính (Đức tính cần rèn luyện)" name="duongTinh" rows={2} value={data.duongTinh} onChange={handleChange} />
+            <TextAreaField config={config} label="1. Nhìn gốc (Nhân gốc lành cấy sâu)" name="nhinGoc" rows={2} value={data.nhinGoc} onChange={handleChange} />
+            <TextAreaField config={config} label="2. Chọn tâm (Xây giá trị phát triển)" name="chonTam" rows={3} value={data.chonTam} onChange={handleChange} />
+            <TextAreaField config={config} label="3. Dưỡng tính (Đức tính cần rèn luyện)" name="duongTinh" rows={2} value={data.duongTinh} onChange={handleChange} />
           </div>
         </div>
 
@@ -263,10 +271,10 @@ export function FormInput({ data, onChange, onPreview }: FormInputProps) {
             <p className="text-xs font-black text-[#5A5A40] uppercase tracking-wider" style={{ fontFamily: "'Google Sans', sans-serif" }}>Thực luyện tâm thức</p>
           </div>
           <div className="space-y-4 pl-4 border-l border-[#E2E2D8] ml-3">
-            <TextAreaField label="1. Phá chấp mở đường" name="phaChap" rows={2} value={data.phaChap} onChange={handleChange} />
-            <TextAreaField label="2. Định tâm giải quyết" name="dinhTam" rows={2} value={data.dinhTam} onChange={handleChange} />
-            <TextAreaField label="3. Phát tuệ hành xử" name="phatTue" rows={2} value={data.phatTue} onChange={handleChange} />
-            <TextAreaField label="4. Thành người đáng tin" name="thanhNguoi" rows={2} value={data.thanhNguoi} onChange={handleChange} />
+            <TextAreaField config={config} label="1. Phá chấp mở đường" name="phaChap" rows={2} value={data.phaChap} onChange={handleChange} />
+            <TextAreaField config={config} label="2. Định tâm giải quyết" name="dinhTam" rows={2} value={data.dinhTam} onChange={handleChange} />
+            <TextAreaField config={config} label="3. Phát tuệ hành xử" name="phatTue" rows={2} value={data.phatTue} onChange={handleChange} />
+            <TextAreaField config={config} label="4. Thành người đáng tin" name="thanhNguoi" rows={2} value={data.thanhNguoi} onChange={handleChange} />
           </div>
         </div>
 

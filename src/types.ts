@@ -1,3 +1,8 @@
+export interface FieldConfig {
+  type: 'text' | 'select';
+  options?: string[];
+}
+
 export interface TemplateConfig {
   fontSize: number;
   textColor: string;
@@ -9,6 +14,7 @@ export interface TemplateConfig {
   borderColor3: string;
   backgroundColor: string;
   logoUrl?: string;
+  fieldsConfig?: Record<string, FieldConfig>;
 }
 
 export interface FormData {

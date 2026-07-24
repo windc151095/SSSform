@@ -41,12 +41,27 @@ const ColorInput = ({ label, name, value, onChange }: ColorInputProps) => (
   </div>
 );
 
+const CONFIGURABLE_FIELDS = [
+  { key: 'tinhHuong', label: 'Tình huống' },
+  { key: 'thucCanh', label: 'Thực cảnh' },
+  { key: 'soiTinhXau', label: 'Soi tính xấu' },
+  { key: 'xetDocHai', label: 'Xét độc hại' },
+  { key: 'thayHauQua', label: 'Thấy hậu quả' },
+  { key: 'nhinGoc', label: 'Nhìn gốc' },
+  { key: 'chonTam', label: 'Chọn tâm' },
+  { key: 'duongTinh', label: 'Dưỡng tính' },
+  { key: 'phaChap', label: 'Phá chấp' },
+  { key: 'dinhTam', label: 'Định tâm' },
+  { key: 'phatTue', label: 'Phát tuệ' },
+  { key: 'thanhNguoi', label: 'Thành người' },
+];
+
 export function AdminPanel({ config, onChange, onSave, onViewDraft }: AdminPanelProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'settings' | 'drafts'>('drafts');
+  const [activeTab, setActiveTab] = useState<'settings' | 'drafts' | 'fields'>('drafts');
   const [drafts, setDrafts] = useState<{ pin: string; timestamp: number; data: FormData }[]>([]);
 
   useEffect(() => {
@@ -97,6 +112,15 @@ export function AdminPanel({ config, onChange, onSave, onViewDraft }: AdminPanel
       ...config,
       [name]: name === 'fontSize' ? Number(value) : value,
     });
+  };
+
+  const handleFieldConfigChange = (fieldKey: string, type: 'text' | 'select', optionsStr: string) => {
+    const newFieldsConfig = { ...(config.fieldsConfig || {}) };
+    newFieldsConfig[fieldKey] = {
+      type,
+      options: optionsStr.split('\n').map(s => s.trim()).filter(Boolean)
+    };
+    onChange({ ...config, fieldsConfig: newFieldsConfig });
   };
 
   if (!isAuthenticated) {
@@ -159,6 +183,15 @@ export function AdminPanel({ config, onChange, onSave, onViewDraft }: AdminPanel
         >
           <Settings className="w-4 h-4" />
           Cài đặt hiển thị
+        </button>
+        <button
+          onClick={() => setActiveTab('fields')}
+          className={`flex-1 py-4 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+            activeTab === 'fields' ? 'bg-white text-[#5A5A40] border-t-2 border-t-[#5A5A40]' : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          Cấu hình trường nhập
         </button>
       </div>
 
@@ -309,6 +342,62 @@ export function AdminPanel({ config, onChange, onSave, onViewDraft }: AdminPanel
                 className="px-6 py-2 bg-[#5A5A40] text-white text-xs font-bold uppercase tracking-wider rounded shadow-sm hover:bg-[#4A4A35] transition-colors"
               >
                 Lưu tùy chọn
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'fields' && (
+        <div className="p-8 space-y-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[12px] font-black text-[#5A5A40] uppercase tracking-widest">Cấu hình trường nhập liệu</h3>
+          </div>
+          
+          <div className="space-y-6">
+            {CONFIGURABLE_FIELDS.map((field) => {
+              const currentConfig = config.fieldsConfig?.[field.key] || { type: 'text', options: [] };
+              
+              return (
+                <div key={field.key} className="p-4 border border-[#E2E2D8] rounded-lg bg-[#F9F9F7]">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[12px] font-bold text-[#5A5A40]">{field.label}</span>
+                    <select
+                      value={currentConfig.type}
+                      onChange={(e) => handleFieldConfigChange(field.key, e.target.value as 'text' | 'select', (currentConfig.options || []).join('\n'))}
+                      className="p-1 border border-[#E2E2D8] rounded bg-white text-[10px] uppercase font-bold text-[#5A5A40] outline-none"
+                    >
+                      <option value="text">Văn bản (Textarea)</option>
+                      <option value="select">Lựa chọn (Select)</option>
+                    </select>
+                  </div>
+                  
+                  {currentConfig.type === 'select' && (
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">
+                        Các tùy chọn (Mỗi tùy chọn 1 dòng)
+                      </label>
+                      <textarea
+                        value={(currentConfig.options || []).join('\n')}
+                        onChange={(e) => handleFieldConfigChange(field.key, 'select', e.target.value)}
+                        rows={4}
+                        className="w-full p-2 border border-[#E2E2D8] rounded bg-white text-[12px] text-[#3C3633] outline-none focus:border-[#7A8471] transition-colors resize-none"
+                        placeholder="Tùy chọn 1&#10;Tùy chọn 2"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {onSave && (
+            <div className="pt-4 flex justify-end border-t border-[#E2E2D8]">
+              <button
+                onClick={onSave}
+                className="px-6 py-2 bg-[#5A5A40] text-white text-xs font-bold uppercase tracking-wider rounded shadow-sm hover:bg-[#4A4A35] transition-colors mt-4"
+              >
+                Lưu cấu hình
               </button>
             </div>
           )}
