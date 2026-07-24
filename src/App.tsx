@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { toPng } from 'html-to-image';
 import download from 'downloadjs';
-import { Settings, PenTool, Image as ImageIcon, Download } from 'lucide-react';
+import { Settings, PenTool, Image as ImageIcon, Download, ZoomIn, ZoomOut } from 'lucide-react';
 
 import { defaultFormData, defaultTemplateConfig, FormData, TemplateConfig } from './types';
 import { FormInput } from './components/FormInput';
@@ -13,6 +13,7 @@ type Tab = 'fill' | 'preview' | 'admin';
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('fill');
   const [formData, setFormData] = useState<FormData>(defaultFormData);
+  const [previewZoom, setPreviewZoom] = useState(window.innerWidth < 1024 ? Math.max((window.innerWidth - 64) / 1000, 0.3) : 1);
   
   const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(() => {
     const saved = localStorage.getItem('templateConfig');
@@ -91,7 +92,7 @@ export default function App() {
               }`}
             >
               <Settings className="w-3 h-3" />
-              <span className="hidden sm:inline">Cài đặt</span>
+              <span className="hidden sm:inline">Quản trị</span>
             </button>
           </div>
         </div>
@@ -102,13 +103,21 @@ export default function App() {
         <section className="flex-1 flex justify-center overflow-y-auto p-4 sm:p-8 custom-scrollbar">
           {activeTab === 'fill' && (
             <div className="w-full max-w-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <FormInput data={formData} onChange={setFormData} />
+              <FormInput data={formData} onChange={setFormData} onPreview={() => setActiveTab('preview')} />
             </div>
           )}
 
           {activeTab === 'admin' && (
             <div className="w-full max-w-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <AdminPanel config={templateConfig} onChange={setTemplateConfig} onSave={handleSaveConfig} />
+              <AdminPanel 
+                config={templateConfig} 
+                onChange={setTemplateConfig} 
+                onSave={handleSaveConfig}
+                onViewDraft={(data) => {
+                  setFormData(data);
+                  setActiveTab('fill');
+                }}
+              />
             </div>
           )}
 
@@ -117,7 +126,24 @@ export default function App() {
               activeTab === 'preview' ? 'block animate-in fade-in duration-500' : 'hidden'
             }`}
           >
-            <div className="w-full max-w-[1000px] flex justify-end mb-4">
+            <div className="w-full max-w-[1020px] flex justify-between items-center mb-4 px-4">
+              <div className="flex items-center gap-2 bg-white rounded-full p-1 shadow-sm">
+                <button 
+                  onClick={() => setPreviewZoom(z => Math.max(0.3, z - 0.1))}
+                  className="p-1.5 text-gray-500 hover:text-[#5A5A40] hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <span className="text-xs font-mono font-medium text-gray-500 w-12 text-center">
+                  {Math.round(previewZoom * 100)}%
+                </span>
+                <button 
+                  onClick={() => setPreviewZoom(z => Math.min(2, z + 0.1))}
+                  className="p-1.5 text-gray-500 hover:text-[#5A5A40] hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+              </div>
               <button
                 onClick={handleExport}
                 disabled={isExporting}
@@ -134,9 +160,11 @@ export default function App() {
               </button>
             </div>
 
-            {/* Wrapper for horizontal scrolling if window is too small */}
-            <div className="w-full max-w-[1020px] overflow-auto bg-white p-4 sm:p-8 rounded-2xl shadow-xl border border-white flex justify-center custom-scrollbar">
-              <div className="origin-top flex justify-center w-[1000px] shrink-0 bg-white shadow-2xl relative">
+            <div className="w-full flex justify-center custom-scrollbar">
+              <div 
+                className="origin-top flex justify-center w-[1000px] shrink-0 bg-white shadow-2xl relative transition-transform duration-200"
+                style={{ transform: `scale(${previewZoom})` }}
+              >
                 <TemplatePreview ref={previewRef} data={formData} config={templateConfig} />
               </div>
             </div>

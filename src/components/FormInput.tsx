@@ -5,6 +5,7 @@ import { Save, Search } from 'lucide-react';
 interface FormInputProps {
   data: FormData;
   onChange: (data: FormData) => void;
+  onPreview?: () => void;
 }
 
 interface InputFieldProps {
@@ -52,7 +53,7 @@ const TextAreaField = ({ label, name, rows = 3, placeholder, value, onChange }: 
   </div>
 );
 
-export function FormInput({ data, onChange }: FormInputProps) {
+export function FormInput({ data, onChange, onPreview }: FormInputProps) {
   const [pin, setPin] = useState('');
   const [saveStatus, setSaveStatus] = useState('');
 
@@ -268,6 +269,17 @@ export function FormInput({ data, onChange }: FormInputProps) {
             <TextAreaField label="4. Thành người đáng tin" name="thanhNguoi" rows={2} value={data.thanhNguoi} onChange={handleChange} />
           </div>
         </div>
+
+        {onPreview && (
+          <div className="pt-6 border-t border-[#F5F5F0] flex justify-end">
+            <button
+              onClick={onPreview}
+              className="flex items-center gap-2 px-6 py-3 bg-[#7A8471] text-white text-sm font-bold uppercase tracking-widest rounded-full hover:bg-[#606958] transition-colors shadow-md"
+            >
+              Xem trước bài viết
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ export interface TemplateConfig {
   borderColor2: string;
   borderColor3: string;
   backgroundColor: string;
+  logoUrl?: string;
 }
 
 export interface FormData {

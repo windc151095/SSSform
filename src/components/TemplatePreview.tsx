@@ -29,11 +29,14 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
         <div className="flex justify-between items-start pt-8 px-8 border-b-[1px] pb-6" style={{ borderColor: headingColor1 }}>
           {/* Logo Area */}
           <div className="w-[300px] text-center mt-2 flex flex-col items-center">
-            <img 
-              src="/logo.png" 
-              alt="Sống Sáng Suốt" 
-              className="w-full object-contain mb-4" 
-            />
+            {config.logoUrl ? (
+              <img src={config.logoUrl} alt="Sống Sáng Suốt Logo" className="w-full max-h-[80px] object-contain mb-4" />
+            ) : (
+              <div className="mb-4 text-gray-400 border-2 border-dashed border-gray-300 rounded-lg w-full h-[80px] flex flex-col items-center justify-center">
+                <span className="text-xs font-bold uppercase">Chưa có Logo</span>
+                <span className="text-[10px]">Vào Cài đặt để thêm Logo</span>
+              </div>
+            )}
             
             <p className="font-bold text-[14px] mt-2" style={{ color: headingColor1 }}>
               Writer: {data.writer || '....................'}
