@@ -47,7 +47,7 @@ export default function App() {
   const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(defaultTemplateConfig);
 
   useEffect(() => {
-    fetch('/api/config')
+    fetch(`/api/config?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         setTemplateConfig(prev => ({ ...prev, ...data }));
@@ -61,8 +61,17 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(templateConfig)
     })
-    .then(() => alert('Đã lưu tùy chọn màu sắc và cài đặt thành công cho tất cả mọi người!'))
-    .catch(() => alert('Lỗi khi lưu cấu hình'));
+    .then(async (res) => {
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err);
+      }
+      alert('Đã lưu tùy chọn cấu hình thành công cho tất cả mọi người!');
+    })
+    .catch((e) => {
+      console.error(e);
+      alert('Lỗi khi lưu cấu hình: ' + e.message);
+    });
   };
 
   const [isExporting, setIsExporting] = useState(false);

@@ -86,7 +86,7 @@ export function AdminPanel({ config, onChange, onSave, onViewDraft }: AdminPanel
       }
     }
     
-    fetch('/api/drafts')
+    fetch(`/api/drafts?t=${Date.now()}`)
       .then(res => res.json())
       .then(apiDrafts => {
         // Merge API drafts and local drafts, avoiding duplicates by PIN

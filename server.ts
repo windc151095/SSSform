@@ -53,9 +53,9 @@ app.get('/api/config', async (req, res) => {
     } else {
       res.json(defaultConfig);
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error('Error fetching config:', e);
-    res.json(defaultConfig);
+    res.json({ ...defaultConfig, error: e.message || e.toString() });
   }
 });
 
