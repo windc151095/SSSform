@@ -81,7 +81,7 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
               NHẬN DẠNG VÔ THỨC
             </h3>
             <div
-              className="border-[1px] flex flex-col min-h-[400px] bg-white"
+              className="border-[1px] flex flex-col min-h-[400px] bg-transparent"
               style={{ borderColor: borderColor1 }}
             >
               <div
@@ -111,7 +111,7 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
               NHẬN DẠNG TÂM THỨC
             </h3>
             <div
-              className="border-[1px] flex flex-col min-h-[400px] bg-white"
+              className="border-[1px] flex flex-col min-h-[400px] bg-transparent"
               style={{ borderColor: borderColor2 }}
             >
               <div
@@ -142,7 +142,7 @@ export const TemplatePreview = forwardRef<HTMLDivElement, TemplatePreviewProps>(
             THỰC LUYỆN TÂM THỨC
           </h3>
           <div
-            className="border-[1px] flex flex-col bg-white"
+            className="border-[1px] flex flex-col bg-transparent"
             style={{ borderColor: borderColor3 }}
           >
             {/* Row 1 */}
