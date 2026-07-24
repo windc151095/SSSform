@@ -64,9 +64,9 @@ app.post('/api/config', async (req, res) => {
     const docRef = doc(db, 'config', 'global');
     await setDoc(docRef, req.body, { merge: true });
     res.json({ success: true, config: req.body });
-  } catch (e) {
+  } catch (e: any) {
     console.error('Error saving config:', e);
-    res.status(500).json({ error: 'Failed to save config' });
+    res.status(500).json({ error: e.message || 'Failed to save config' });
   }
 });
 
@@ -94,9 +94,9 @@ app.post('/api/drafts', async (req, res) => {
     const docRef = doc(db, 'drafts', pin);
     await setDoc(docRef, { pin, data, timestamp });
     res.json({ success: true });
-  } catch (e) {
+  } catch (e: any) {
     console.error('Error saving draft:', e);
-    res.status(500).json({ error: 'Failed to save draft' });
+    res.status(500).json({ error: e.message || 'Failed to save draft' });
   }
 });
 
@@ -110,9 +110,9 @@ app.get('/api/drafts/:pin', async (req, res) => {
     } else {
       res.status(404).json({ error: 'Draft not found' });
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error('Error fetching draft:', e);
-    res.status(500).json({ error: 'Failed to fetch draft' });
+    res.status(500).json({ error: e.message || 'Failed to fetch draft' });
   }
 });
 
@@ -121,9 +121,9 @@ app.delete('/api/drafts/:pin', async (req, res) => {
     const docRef = doc(db, 'drafts', req.params.pin);
     await deleteDoc(docRef);
     res.json({ success: true });
-  } catch (e) {
+  } catch (e: any) {
     console.error('Error deleting draft:', e);
-    res.status(500).json({ error: 'Failed to delete draft' });
+    res.status(500).json({ error: e.message || 'Failed to delete draft' });
   }
 });
 
