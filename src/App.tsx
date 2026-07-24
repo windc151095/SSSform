@@ -44,21 +44,25 @@ export default function App() {
     }
   }, [formData]);
 
-  const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(() => {
-    const saved = localStorage.getItem('templateConfig');
-    if (saved) {
-      try {
-        return { ...defaultTemplateConfig, ...JSON.parse(saved) };
-      } catch (e) {
-        console.error('Failed to parse saved config', e);
-      }
-    }
-    return defaultTemplateConfig;
-  });
+  const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(defaultTemplateConfig);
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        setTemplateConfig(prev => ({ ...prev, ...data }));
+      })
+      .catch(console.error);
+  }, []);
 
   const handleSaveConfig = () => {
-    localStorage.setItem('templateConfig', JSON.stringify(templateConfig));
-    alert('Đã lưu tùy chọn màu sắc và cài đặt thành công!');
+    fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(templateConfig)
+    })
+    .then(() => alert('Đã lưu tùy chọn màu sắc và cài đặt thành công cho tất cả mọi người!'))
+    .catch(() => alert('Lỗi khi lưu cấu hình'));
   };
 
   const [isExporting, setIsExporting] = useState(false);

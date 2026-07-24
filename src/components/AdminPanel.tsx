@@ -71,34 +71,52 @@ export function AdminPanel({ config, onChange, onSave, onViewDraft }: AdminPanel
   }, [isAuthenticated]);
 
   const loadDrafts = () => {
-    const loadedDrafts = [];
+    const localDrafts = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith('draft_')) {
         try {
           const item = JSON.parse(localStorage.getItem(key) || '{}');
           if (item.data) {
-            loadedDrafts.push(item);
+            localDrafts.push(item);
           }
         } catch (e) {
           console.error('Lỗi khi đọc draft:', e);
         }
       }
     }
-    loadedDrafts.sort((a, b) => b.timestamp - a.timestamp);
-    setDrafts(loadedDrafts);
+    
+    fetch('/api/drafts')
+      .then(res => res.json())
+      .then(apiDrafts => {
+        // Merge API drafts and local drafts, avoiding duplicates by PIN
+        const draftMap = new Map();
+        localDrafts.forEach(d => draftMap.set(d.pin, d));
+        apiDrafts.forEach((d: any) => draftMap.set(d.pin, d));
+        
+        const allDrafts = Array.from(draftMap.values());
+        allDrafts.sort((a, b) => b.timestamp - a.timestamp);
+        setDrafts(allDrafts);
+      })
+      .catch(() => {
+        localDrafts.sort((a, b) => b.timestamp - a.timestamp);
+        setDrafts(localDrafts);
+      });
   };
 
   const handleDeleteDraft = (pin: string) => {
     if (confirm(`Bạn có chắc muốn xóa bài viết có mã PIN ${pin}?`)) {
       localStorage.removeItem(`draft_${pin}`);
-      loadDrafts();
+      fetch(`/api/drafts/${pin}`, { method: 'DELETE' })
+        .finally(() => {
+          loadDrafts();
+        });
     }
   };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin') {
+    if (username === 'admin' && password === 'ssstamthuc') {
       setIsAuthenticated(true);
       setError('');
     } else {
